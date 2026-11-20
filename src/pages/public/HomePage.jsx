@@ -1,4 +1,31 @@
-import { CalendarHeart, ChefHat, FileText } from 'lucide-react'
+import { ArrowRight, CalendarHeart, ChefHat, FileText } from 'lucide-react'
+import { useAuth } from '@/auth/AuthContext.js'
+import Button from '@/components/ui/Button.jsx'
+
+function HeroActions() {
+  const { loading, user, isAdmin } = useAuth()
+  return (
+    <div className="animate-fade-up mt-9 flex min-h-12 flex-wrap gap-3 [animation-delay:240ms]">
+      {!loading &&
+        (user ? (
+          <Button to={isAdmin ? '/admin' : '/account'} size="lg">
+            {isAdmin ? 'Go to owner portal' : 'Go to my account'}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Button>
+        ) : (
+          <>
+            <Button to="/register" size="lg">
+              Create an account
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
+            <Button to="/login" variant="secondary" size="lg">
+              Sign in
+            </Button>
+          </>
+        ))}
+    </div>
+  )
+}
 
 const pillars = [
   {
@@ -37,6 +64,7 @@ export default function HomePage() {
             Plan your event menu, send an enquiry and receive a detailed quotation from Surinder Caterers, all in
             one place.
           </p>
+          <HeroActions />
         </div>
       </section>
 

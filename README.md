@@ -62,6 +62,12 @@ Key rules enforced **in the database** (not just the UI):
 - Quotation totals (subtotal, charges, discount, GST, total, advance, balance) are computed by the database. A version is locked once sent; changes require a new revision.
 - Logged-out visitors have no table access.
 
+### Authentication setup (Supabase dashboard)
+
+- **Authentication → URL Configuration**: set **Site URL** to the app's address (`http://localhost:5173` in development, the Vercel URL in production) and add `<app-url>/**` to **Redirect URLs**. Confirmation and password-reset links only work for listed URLs.
+- **Email delivery**: Supabase's built-in email sender only delivers to members of your Supabase organisation and is heavily rate-limited. Configure custom SMTP (**Authentication → Emails → SMTP Settings**) before real customers sign up.
+- Sessions use the PKCE flow, so confirmation and reset links must be opened in the same browser that requested them.
+
 ### Making someone an admin
 
 Admins are promoted manually in the Supabase **SQL editor** (never through the app). The user must have signed up first:
@@ -102,7 +108,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 
 1. ✅ Project foundation: Vite, React, Tailwind, routing, design tokens, Git
 2. ✅ Supabase connection, database schema, RLS policies
-3. Authentication, profiles, protected customer and admin layouts
+3. 🟡 Authentication, profiles, protected customer and admin layouts (built; awaiting live sign-up test)
 4. Dish management (admin) and menu browsing (customer)
 5. Enquiry submission and tracking
 6. AI menu recommendations (server-side, database-only dishes)

@@ -31,7 +31,7 @@ export default function Button({
   ...props
 }) {
   const classes = cn(
-    'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-wide',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold tracking-wide',
     'transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50',
     variants[variant],
     sizes[size],

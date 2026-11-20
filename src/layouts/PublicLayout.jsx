@@ -1,5 +1,29 @@
 import { Outlet } from 'react-router-dom'
+import { useAuth } from '@/auth/AuthContext.js'
 import Logo from '@/components/brand/Logo.jsx'
+import Button from '@/components/ui/Button.jsx'
+
+function HeaderActions() {
+  const { loading, user, isAdmin } = useAuth()
+  if (loading) return null
+  if (user) {
+    return (
+      <Button to={isAdmin ? '/admin' : '/account'} size="sm">
+        {isAdmin ? 'Owner portal' : 'My account'}
+      </Button>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1 sm:gap-2">
+      <Button to="/login" variant="ghost" size="sm">
+        Sign in
+      </Button>
+      <Button to="/register" size="sm" className="hidden sm:inline-flex">
+        Create account
+      </Button>
+    </div>
+  )
+}
 
 export default function PublicLayout() {
   return (
@@ -7,7 +31,7 @@ export default function PublicLayout() {
       <header className="border-b border-ivory-200/80 bg-ivory-50/90 backdrop-blur">
         <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
-          {/* Sign in / Register links are added with authentication in Phase 3. */}
+          <HeaderActions />
         </div>
       </header>
 
