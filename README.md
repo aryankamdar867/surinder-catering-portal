@@ -101,7 +101,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 ## Roadmap
 
 1. ✅ Project foundation: Vite, React, Tailwind, routing, design tokens, Git
-2. 🟡 Supabase connection, database schema, RLS policies (written and tested locally; not yet applied)
+2. ✅ Supabase connection, database schema, RLS policies
 3. Authentication, profiles, protected customer and admin layouts
 4. Dish management (admin) and menu browsing (customer)
 5. Enquiry submission and tracking
