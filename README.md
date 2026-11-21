@@ -5,7 +5,7 @@ A full-stack catering management platform with two experiences:
 - **Customer portal**: register, plan an event, browse the live dish catalogue, get AI menu suggestions, submit enquiries, and review and accept quotations.
 - **Owner/Admin portal**: manage dishes, review enquiries, build and send branded PDF quotations, and track events.
 
-> **Status:** Phases 1–3 are complete: project foundation, the Supabase schema and RLS (applied to the live project), and authentication with customer/admin portals (tested against live Supabase on 21 Nov 2026). Features are added phase by phase; see the roadmap below.
+> **Status:** Phases 1–4 are complete: project foundation, the Supabase schema and RLS (applied to the live project), authentication with customer/admin portals, and dish management with the customer menu (both tested against live Supabase on 21 Nov 2026). Features are added phase by phase; see the roadmap below.
 
 ## Tech stack
 
@@ -53,6 +53,8 @@ The schema lives in `supabase/migrations/` and is applied in filename order:
 | `…_core_schema.sql` | Tables, constraints, indexes, snapshot and total-calculation triggers    |
 | `…_rls_policies.sql`| Row Level Security policies and table/column privileges                  |
 | `…_storage.sql`     | `dish-images` bucket (public read, admin write)                          |
+| `…_seed_catalogue.sql` | Starter categories and cuisines (no dishes). Safe to re-run          |
+| `…_storage_admin_select.sql` | Lets admins list and delete dish photos (needed for photo cleanup) |
 
 Key rules enforced **in the database** (not just the UI):
 
@@ -85,6 +87,10 @@ src/
   components/
     brand/            Logo and brand elements
     ui/               Reusable design-system components (Button, …)
+    catalogue/        Dish photo, veg/non-veg mark, image picker
+    feedback/         Alerts, loaders, empty states, confirm dialog
+  constants/          Labels that mirror database CHECK constraints
+  hooks/              useForm, useAsync
   layouts/            Public, customer and admin layouts
   pages/
     public/           Marketing / landing pages
@@ -109,7 +115,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 1. ✅ Project foundation: Vite, React, Tailwind, routing, design tokens, Git
 2. ✅ Supabase connection, database schema, RLS policies
 3. ✅ Authentication, profiles, protected customer and admin layouts. Verified live: sign-up and profile creation, login, logout, password change, route protection, customer blocked from admin, and the RLS checks (no self-promotion, own-profile-only). The email links themselves (confirmation and reset) depend on email delivery; re-test them once custom SMTP is configured.
-4. Dish management (admin) and menu browsing (customer)
+4. ✅ Dish management (admin: dishes with photos, categories, cuisines) and menu browsing (customer: search, cuisine/diet/range filters). Verified live 21 Nov 2026, including RLS (customers read-only, hidden categories invisible) and photo upload/cleanup
 5. Enquiry submission and tracking
 6. AI menu recommendations (server-side, database-only dishes)
 7. Admin enquiry management and quotation builder

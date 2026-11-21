@@ -15,8 +15,12 @@ import HomePage from '@/pages/public/HomePage.jsx'
 const CustomerLayout = lazy(() => import('@/layouts/CustomerLayout.jsx'))
 const CustomerDashboardPage = lazy(() => import('@/pages/customer/CustomerDashboardPage.jsx'))
 const ProfilePage = lazy(() => import('@/pages/customer/ProfilePage.jsx'))
+const MenuPage = lazy(() => import('@/pages/customer/MenuPage.jsx'))
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage.jsx'))
+const DishesPage = lazy(() => import('@/pages/admin/DishesPage.jsx'))
+const DishFormPage = lazy(() => import('@/pages/admin/DishFormPage.jsx'))
+const CatalogueGroupsPage = lazy(() => import('@/pages/admin/CatalogueGroupsPage.jsx'))
 
 export default function App() {
   return (
@@ -40,12 +44,17 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="account" element={<CustomerLayout />}>
             <Route index element={<CustomerDashboardPage />} />
+            <Route path="menu" element={<MenuPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           <Route path="admin" element={<RequireAdmin />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboardPage />} />
+              <Route path="dishes" element={<DishesPage />} />
+              <Route path="dishes/new" element={<DishFormPage />} />
+              <Route path="dishes/:id" element={<DishFormPage />} />
+              <Route path="catalogue" element={<CatalogueGroupsPage />} />
             </Route>
           </Route>
         </Route>

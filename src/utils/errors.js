@@ -21,8 +21,7 @@ const AUTH_MESSAGES = {
 const DB_MESSAGES = {
   23505: 'This record already exists.',
   23514: 'Some of the details entered are not valid.',
-  23503: 'This item is linked to other records and cannot be changed.',
-  42501: 'You do not have permission to do that.',
+  23503: 'This item is linked to other records and cannot be changed.',  42501: 'You do not have permission to do that.',
   PGRST116: 'The requested record was not found.',
 }
 

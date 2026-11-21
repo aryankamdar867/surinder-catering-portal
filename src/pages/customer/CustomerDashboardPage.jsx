@@ -1,4 +1,4 @@
-import { ArrowRight, UserRound } from 'lucide-react'
+import { ArrowRight, UserRound, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import Button from '@/components/ui/Button.jsx'
@@ -45,7 +45,25 @@ export default function CustomerDashboardPage() {
           </Card>
         )}
 
-        <Card>
+        <Card className="lg:col-start-1">
+          <CardBody className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gold-300/30 text-gold-600">
+                <UtensilsCrossed className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-sans text-base font-semibold tracking-normal text-ink-900">Browse our menu</h2>
+                <p className="text-sm text-ink-500">See our dishes, prices and dietary information.</p>
+              </div>
+            </div>
+            <Button to="/account/menu" variant="secondary" className="shrink-0">
+              View menu
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
+          </CardBody>
+        </Card>
+
+        <Card className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <CardHeader
             title="Your details"
             action={
