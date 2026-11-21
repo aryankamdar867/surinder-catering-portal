@@ -5,6 +5,7 @@ const AUTH_MESSAGES = {
   email_not_confirmed: 'Please confirm your email address before signing in.',
   user_already_exists: 'An account with this email already exists. Try signing in instead.',
   email_exists: 'An account with this email already exists. Try signing in instead.',
+  email_address_invalid: 'Please enter a real email address you can receive mail at.',
   weak_password: 'That password is too weak. Use at least 8 characters with letters and numbers.',
   same_password: 'Your new password must be different from your current password.',
   over_email_send_rate_limit: 'Too many emails have been sent. Please wait a few minutes and try again.',

@@ -5,7 +5,7 @@ A full-stack catering management platform with two experiences:
 - **Customer portal**: register, plan an event, browse the live dish catalogue, get AI menu suggestions, submit enquiries, and review and accept quotations.
 - **Owner/Admin portal**: manage dishes, review enquiries, build and send branded PDF quotations, and track events.
 
-> **Status:** Phase 1 (project foundation) is complete. Backend features are added phase by phase; see the roadmap below.
+> **Status:** Phases 1–3 are complete: project foundation, the Supabase schema and RLS (applied to the live project), and authentication with customer/admin portals (tested against live Supabase on 21 Nov 2026). Features are added phase by phase; see the roadmap below.
 
 ## Tech stack
 
@@ -108,7 +108,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 
 1. ✅ Project foundation: Vite, React, Tailwind, routing, design tokens, Git
 2. ✅ Supabase connection, database schema, RLS policies
-3. 🟡 Authentication, profiles, protected customer and admin layouts (built; awaiting live sign-up test)
+3. ✅ Authentication, profiles, protected customer and admin layouts. Verified live: sign-up and profile creation, login, logout, password change, route protection, customer blocked from admin, and the RLS checks (no self-promotion, own-profile-only). The email links themselves (confirmation and reset) depend on email delivery; re-test them once custom SMTP is configured.
 4. Dish management (admin) and menu browsing (customer)
 5. Enquiry submission and tracking
 6. AI menu recommendations (server-side, database-only dishes)
