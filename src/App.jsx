@@ -16,6 +16,9 @@ const CustomerLayout = lazy(() => import('@/layouts/CustomerLayout.jsx'))
 const CustomerDashboardPage = lazy(() => import('@/pages/customer/CustomerDashboardPage.jsx'))
 const ProfilePage = lazy(() => import('@/pages/customer/ProfilePage.jsx'))
 const MenuPage = lazy(() => import('@/pages/customer/MenuPage.jsx'))
+const EnquiriesPage = lazy(() => import('@/pages/customer/enquiry/EnquiriesPage.jsx'))
+const NewEnquiryPage = lazy(() => import('@/pages/customer/enquiry/NewEnquiryPage.jsx'))
+const EnquiryDetailPage = lazy(() => import('@/pages/customer/enquiry/EnquiryDetailPage.jsx'))
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage.jsx'))
 const DishesPage = lazy(() => import('@/pages/admin/DishesPage.jsx'))
@@ -45,6 +48,9 @@ export default function App() {
           <Route path="account" element={<CustomerLayout />}>
             <Route index element={<CustomerDashboardPage />} />
             <Route path="menu" element={<MenuPage />} />
+            <Route path="enquiries" element={<EnquiriesPage />} />
+            <Route path="enquiries/new" element={<NewEnquiryPage />} />
+            <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 

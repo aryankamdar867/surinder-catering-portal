@@ -1,9 +1,58 @@
-import { ArrowRight, UserRound, UtensilsCrossed } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, CalendarPlus, UserRound, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import Button from '@/components/ui/Button.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
+import { eventTitle } from '@/constants/enquiry.js'
+import { useAsync } from '@/hooks/useAsync.js'
+import EnquiryStatusBadge from '@/pages/customer/enquiry/EnquiryStatusBadge.jsx'
+import { listMyEnquiries } from '@/services/enquiryService.js'
+import { formatEventDate } from '@/utils/dates.js'
 import { formatDate } from '@/utils/format.js'
+
+function EnquiryCard({ userId }) {
+  const { data } = useAsync(() => listMyEnquiries(userId, { limit: 1 }), [userId])
+  const latest = data?.[0]
+  return (
+    <Card className="lg:col-start-1">
+      <CardBody className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700">
+            <CalendarPlus className="size-5" aria-hidden="true" />
+          </span>
+          {latest ? (
+            <div className="min-w-0">
+              <h2 className="font-sans text-base font-semibold tracking-normal text-ink-900">Your latest enquiry</h2>
+              <Link to={`/account/enquiries/${latest.id}`} className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-ink-500 hover:text-forest-700">
+                <span className="truncate">
+                  {eventTitle(latest.event)} · {formatEventDate(latest.event?.event_date)}
+                </span>
+                <EnquiryStatusBadge status={latest.status} />
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <h2 className="font-sans text-base font-semibold tracking-normal text-ink-900">Planning an event?</h2>
+              <p className="text-sm text-ink-500">Tell us the details and we'll prepare a quotation.</p>
+            </div>
+          )}
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {latest && (
+            <Button to="/account/enquiries" variant="ghost">
+              View all
+            </Button>
+          )}
+          <Button to="/account/enquiries/new" variant={latest ? 'secondary' : 'primary'}>
+            Plan an event
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+      </CardBody>
+    </Card>
+  )
+}
 
 export default function CustomerDashboardPage() {
   const { profile } = useAuth()
@@ -45,6 +94,8 @@ export default function CustomerDashboardPage() {
           </Card>
         )}
 
+        <EnquiryCard userId={profile.id} />
+
         <Card className="lg:col-start-1">
           <CardBody className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
@@ -63,7 +114,7 @@ export default function CustomerDashboardPage() {
           </CardBody>
         </Card>
 
-        <Card className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <Card className="lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:self-start">
           <CardHeader
             title="Your details"
             action={

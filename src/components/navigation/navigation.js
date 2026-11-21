@@ -1,9 +1,10 @@
-import { LayoutDashboard, Tags, UserRound, UtensilsCrossed } from 'lucide-react'
+import { ClipboardList, LayoutDashboard, Tags, UserRound, UtensilsCrossed } from 'lucide-react'
 
 // Navigation grows as each phase adds pages (enquiries, quotations, …).
 
 export const CUSTOMER_NAV = [
   { to: '/account', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/account/enquiries', label: 'Enquiries', icon: ClipboardList },
   { to: '/account/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/account/profile', label: 'Profile', icon: UserRound },
 ]

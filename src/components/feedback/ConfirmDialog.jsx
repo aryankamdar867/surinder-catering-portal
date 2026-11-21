@@ -10,6 +10,7 @@ export default function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
   tone = 'danger',
   loading = false,
   onConfirm,
@@ -42,7 +43,7 @@ export default function ConfirmDialog({
         {message && <div className="mt-2 text-sm leading-relaxed text-ink-500">{message}</div>}
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={loading}>
-            Cancel
+            {cancelLabel}
           </Button>
           <Button variant={tone === 'danger' ? 'accent' : 'primary'} onClick={onConfirm} loading={loading}>
             {confirmLabel}

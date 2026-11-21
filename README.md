@@ -5,7 +5,7 @@ A full-stack catering management platform with two experiences:
 - **Customer portal**: register, plan an event, browse the live dish catalogue, get AI menu suggestions, submit enquiries, and review and accept quotations.
 - **Owner/Admin portal**: manage dishes, review enquiries, build and send branded PDF quotations, and track events.
 
-> **Status:** Phases 1–4 are complete: project foundation, the Supabase schema and RLS (applied to the live project), authentication with customer/admin portals, and dish management with the customer menu (both tested against live Supabase on 21 Nov 2026). Features are added phase by phase; see the roadmap below.
+> **Status:** Phases 1–5 are complete: project foundation, the Supabase schema and RLS (applied to the live project), authentication with customer/admin portals, dish management with the customer menu, and customer enquiry submission and tracking (Phases 3–5 tested against live Supabase on 21 Nov 2026). Features are added phase by phase; see the roadmap below.
 
 ## Tech stack
 
@@ -55,6 +55,7 @@ The schema lives in `supabase/migrations/` and is applied in filename order:
 | `…_storage.sql`     | `dish-images` bucket (public read, admin write)                          |
 | `…_seed_catalogue.sql` | Starter categories and cuisines (no dishes). Safe to re-run          |
 | `…_storage_admin_select.sql` | Lets admins list and delete dish photos (needed for photo cleanup) |
+| `…_enquiry_rpcs.sql` | `submit_enquiry` / `cancel_enquiry`: the only way customers create or cancel enquiries |
 
 Key rules enforced **in the database** (not just the UI):
 
@@ -63,6 +64,7 @@ Key rules enforced **in the database** (not just the UI):
 - Dish names and prices in enquiries and quotations are **snapshots** taken from the `dishes` table. Client-supplied prices are ignored. Editing or deleting a dish never changes history.
 - Quotation totals (subtotal, charges, discount, GST, total, advance, balance) are computed by the database. A version is locked once sent; changes require a new revision.
 - Logged-out visitors have no table access.
+- Customers cannot insert or update enquiry tables directly; `submit_enquiry()` / `cancel_enquiry()` always act as the signed-in user. Enquiries can't be deleted through the API, and an account that has enquiries can't be deleted from the dashboard (`on delete restrict`) so business records survive.
 
 ### Authentication setup (Supabase dashboard)
 
@@ -116,7 +118,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 2. ✅ Supabase connection, database schema, RLS policies
 3. ✅ Authentication, profiles, protected customer and admin layouts. Verified live: sign-up and profile creation, login, logout, password change, route protection, customer blocked from admin, and the RLS checks (no self-promotion, own-profile-only). The email links themselves (confirmation and reset) depend on email delivery; re-test them once custom SMTP is configured.
 4. ✅ Dish management (admin: dishes with photos, categories, cuisines) and menu browsing (customer: search, cuisine/diet/range filters). Verified live 21 Nov 2026, including RLS (customers read-only, hidden categories invisible) and photo upload/cleanup
-5. Enquiry submission and tracking
+5. ✅ Enquiry submission and tracking: a four-step enquiry form (event, optional dishes from the live menu, contact/budget, review) that autosaves a draft; enquiry list and detail pages with a status timeline; cancel while submitted or under review. Submission goes through a validated database function (prices snapshotted from `dishes`, max 10 enquiries per customer per day). Verified live 21 Nov 2026
 6. AI menu recommendations (server-side, database-only dishes)
 7. Admin enquiry management and quotation builder
 8. PDF quotations and notifications

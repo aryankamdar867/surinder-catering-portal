@@ -11,6 +11,17 @@ export const PRICING_UNITS = {
   per_counter: 'per counter',
 }
 
+/** What a quantity counts, per pricing unit (e.g. "Quantity (guests)"). */
+export const QUANTITY_UNITS = {
+  per_person: 'guests',
+  per_plate: 'plates',
+  per_piece: 'pieces',
+  per_kg: 'kg',
+  per_litre: 'litres',
+  per_tray: 'trays',
+  per_counter: 'counters',
+}
+
 export const DIETARY_LABELS = {
   vegetarian: 'Vegetarian',
   non_vegetarian: 'Non-vegetarian',

@@ -8,7 +8,7 @@ const GROUP_EDITABLE = ['name', 'description', 'sort_order', 'is_active']
 
 const DISH_COLUMNS =
   'id, name, description, category_id, cuisine_id, price, pricing_unit, dietary_labels, allergens, tier, ' +
-  'is_available, image_path, created_at, updated_at, category:categories(id, name), cuisine:cuisines(id, name)'
+  'is_available, image_path, created_at, updated_at, category:categories(id, name, is_active), cuisine:cuisines(id, name, is_active)'
 const DISH_EDITABLE = [
   'name',
   'description',
@@ -50,6 +50,21 @@ export const cuisines = groupApi('cuisines')
 
 export function listDishes() {
   return run(supabase.from('dishes').select(DISH_COLUMNS).order('name'))
+}
+
+/**
+ * Dishes a customer may see on the menu, plus the (active) categories in display order.
+ * RLS hides inactive categories/cuisines from customers, so their embeds come back null;
+ * the explicit is_active checks keep an admin's view of the menu identical to a customer's.
+ */
+export async function listMenu() {
+  const [categoryList, dishes] = await Promise.all([categories.list(), listDishes()])
+  const activeCategories = categoryList.filter((c) => c.is_active)
+  const activeIds = new Set(activeCategories.map((c) => c.id))
+  return {
+    categoryList: activeCategories,
+    dishes: dishes.filter((d) => d.category?.is_active && d.cuisine?.is_active && activeIds.has(d.category_id)),
+  }
 }
 
 export function getDish(id) {
