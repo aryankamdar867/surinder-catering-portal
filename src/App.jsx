@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { GuestOnly, RequireAdmin, RequireAuth } from '@/auth/guards.jsx'
+import { AdminGuestOnly, GuestOnly, RequireAdmin, RequireAuth } from '@/auth/guards.jsx'
 import PageLoader from '@/components/feedback/PageLoader.jsx'
 import AuthLayout from '@/layouts/AuthLayout.jsx'
 import PublicLayout from '@/layouts/PublicLayout.jsx'
@@ -39,6 +39,10 @@ export default function App() {
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          </Route>
+          {/* Owner sign-in: same LoginPage and Supabase auth, owner wording. */}
+          <Route element={<AdminGuestOnly />}>
+            <Route path="admin/login" element={<LoginPage variant="admin" />} />
           </Route>
           {/* Not guest-only: the reset link signs the user in with a recovery session. */}
           <Route path="reset-password" element={<ResetPasswordPage />} />

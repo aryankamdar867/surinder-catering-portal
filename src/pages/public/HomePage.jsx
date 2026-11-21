@@ -19,7 +19,7 @@ function HeroActions() {
               <ArrowRight className="size-4" aria-hidden="true" />
             </Button>
             <Button to="/login" variant="secondary" size="lg">
-              Sign in
+              Customer login
             </Button>
           </>
         ))}

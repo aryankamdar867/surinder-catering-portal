@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { cn } from '@/utils/cn.js'
 
-export default function Logo({ className, light = false }) {
+/** `compact`: show only the SC mark on phones (wordmark from sm up) to free header space. */
+export default function Logo({ className, light = false, compact = false }) {
   return (
     <Link to="/" className={cn('group inline-flex items-center gap-3', className)} aria-label="Surinder Caterers home">
       <span
@@ -12,7 +13,7 @@ export default function Logo({ className, light = false }) {
       >
         SC
       </span>
-      <span className="leading-none">
+      <span className={cn('leading-none', compact && 'hidden sm:block')}>
         <span
           className={cn(
             'block whitespace-nowrap font-display text-xl font-semibold',
