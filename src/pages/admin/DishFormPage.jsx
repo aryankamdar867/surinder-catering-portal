@@ -37,7 +37,7 @@ const toFormValues = (dish) => ({
   description: dish.description ?? '',
   category_id: dish.category_id,
   cuisine_id: dish.cuisine_id,
-  price: String(dish.price),
+  price: dish.price === null ? '' : String(dish.price),
   pricing_unit: dish.pricing_unit,
   tier: dish.tier,
   dietary_labels: dish.dietary_labels,
@@ -54,7 +54,7 @@ function validate(v) {
     cuisine_id: v.cuisine_id ? undefined : 'Choose a cuisine.',
     price:
       v.price.trim() === ''
-        ? 'Price is required.'
+        ? undefined // no price yet: shown to customers as "Price on request"
         : !Number.isFinite(price) || price < 0
           ? 'Enter a price of 0 or more.'
           : price >= 1e8
@@ -143,7 +143,7 @@ function DishForm({ categoryList, cuisineList, dish }) {
         ...v,
         name: v.name.trim(),
         description: v.description.trim() || null,
-        price: Number(v.price),
+        price: v.price.trim() === '' ? null : Number(v.price),
         image_path,
       }
       const saved = isEdit ? await updateDish(dish.id, payload) : await createDish(payload)
@@ -153,7 +153,7 @@ function DishForm({ categoryList, cuisineList, dish }) {
     } catch (err) {
       if (uploadedPath) await removeDishImage(uploadedPath)
       if (err.code === '23505') {
-        setErrors((prev) => ({ ...prev, name: 'A dish with this name already exists.' }))
+        setErrors((prev) => ({ ...prev, name: 'A dish with this name already exists in this category.' }))
       } else if (err.code === '23503') {
         setFailure('The selected category or cuisine no longer exists. Reload the page and choose again.')
       } else {
@@ -220,7 +220,10 @@ function DishForm({ categoryList, cuisineList, dish }) {
           </Card>
 
           <Card>
-            <CardHeader title="Pricing" description="Customers see this price; quotations take a snapshot of it." />
+            <CardHeader
+              title="Pricing"
+              description="Customers see this price; quotations take a snapshot of it. Leave the price blank to show “Price on request”."
+            />
             <CardBody className="grid gap-5 sm:grid-cols-3">
               <Field
                 label="Price (₹)"

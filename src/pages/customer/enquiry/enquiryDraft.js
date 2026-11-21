@@ -1,4 +1,6 @@
+import { hasPrice } from '@/utils/catalogue.js'
 import { addToIsoDate, todayInIndia } from '@/utils/dates.js'
+import { formatCurrency } from '@/utils/format.js'
 import { validateEmail, validateGst, validatePhone } from '@/utils/validation.js'
 
 // Wizard state, validation and persistence. Rules mirror submit_enquiry() in
@@ -147,13 +149,30 @@ export function firstInvalidStep(draft) {
   return -1
 }
 
-/** Estimated total for a selection, using live menu prices (the server snapshots its own). */
+/**
+ * Estimated total for a selection, using live menu prices (the server snapshots its own).
+ * Dishes without a price ("price on request") are left out and counted in `unpriced`.
+ */
 export function estimateTotal(selection, dishById) {
-  return selection.reduce((sum, s) => {
-    const dish = dishById.get(s.dish_id)
-    const qty = Number(s.quantity)
-    return dish && Number.isFinite(qty) ? sum + Number(dish.price) * qty : sum
-  }, 0)
+  return selection.reduce(
+    (acc, s) => {
+      const dish = dishById.get(s.dish_id)
+      const qty = Number(s.quantity)
+      if (!dish) return acc
+      if (!hasPrice(dish.price)) return { ...acc, unpriced: acc.unpriced + 1 }
+      return Number.isFinite(qty) ? { ...acc, total: acc.total + Number(dish.price) * qty, priced: acc.priced + 1 } : acc
+    },
+    { total: 0, priced: 0, unpriced: 0 },
+  )
+}
+
+/** The estimate's amount: "On request" when nothing selected has a price yet. */
+export const estimateAmount = ({ total, priced, unpriced }) => (unpriced > 0 && priced === 0 ? 'On request' : formatCurrency(total))
+
+/** Explains dishes left out of the estimate, or null. */
+export function estimateNote({ unpriced }) {
+  if (!unpriced) return null
+  return `${unpriced} ${unpriced === 1 ? 'dish is' : 'dishes are'} priced on request and not included. We'll confirm prices in your quotation.`
 }
 
 /** Shape sent to submit_enquiry (strings trimmed; GST upper-cased; numbers as strings are fine). */

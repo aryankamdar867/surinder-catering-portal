@@ -41,7 +41,7 @@ npm run dev                  # http://localhost:5173
 See `.env.example`.
 
 - `VITE_*` variables are bundled into the browser. Only **public** values belong there (the Supabase URL and publishable key).
-- `SUPABASE_SECRET_KEY` and `AI_API_KEY` are **server-only**. They are used only inside `/api` functions and set in Vercel's environment settings. Never prefix them with `VITE_`. `src/lib/supabase.js` refuses to start if a secret key is configured for the browser.
+- `ANTHROPIC_API_KEY` (and `SUPABASE_SECRET_KEY`, reserved for later phases) are **server-only**. They are used only inside `/api` functions and set in Vercel's environment settings. Never prefix them with `VITE_`. In development, put them in `.env.local`: `npm run dev` serves `/api/*` from the `api/` folder and passes them only to those handlers. `src/lib/supabase.js` refuses to start if a secret key is configured for the browser.
 - `.env` and `.env.local` are git-ignored.
 
 ## Database
@@ -56,6 +56,19 @@ The schema lives in `supabase/migrations/` and is applied in filename order:
 | `…_seed_catalogue.sql` | Starter categories and cuisines (no dishes). Safe to re-run          |
 | `…_storage_admin_select.sql` | Lets admins list and delete dish photos (needed for photo cleanup) |
 | `…_enquiry_rpcs.sql` | `submit_enquiry` / `cancel_enquiry`: the only way customers create or cancel enquiries |
+| `…_ai_suggestions.sql` | `claim_ai_suggestion()` rate limit (3/minute, 20/day per user) and `submit_enquiry` recording `source = 'ai'` for accepted suggestions |
+| `…_menu_catalogue.sql` | Nullable dish `price` ("price on request"), the menu's five descriptive columns, and dish names unique per category |
+| `…_ai_suggestion_refunds.sql` | `refund_ai_suggestion()`: gives back one suggestion slot when the AI provider fails or times out. Server-only (needs `SUPABASE_SECRET_KEY`), at most once per claim |
+
+### Importing the official menu
+
+`Menu_Portal_Classification.xlsx` is the customer-facing menu (337 vegetarian + 242 non-vegetarian dishes). `scripts/menu-import/generate_menu_import.py` (Python 3.10+, standard library only) checks the workbook and writes two SQL files to `supabase/imports/`:
+
+```sh
+python -I scripts/menu-import/generate_menu_import.py Menu_Portal_Classification.xlsx
+```
+
+Run `menu_portal_classification.dry_run.sql` in the SQL editor first. It performs the whole import, returns a report table, and rolls back. Then run `menu_portal_classification.apply.sql`. Both files are safe to re-run: dishes are matched by category + name. Re-running refreshes the workbook columns only, never prices, photos, allergens, descriptions or availability set in the app. Categories and cuisines are matched by name ignoring case and spacing, so no duplicates are created. Imported dishes have no price until an admin sets one.
 
 Key rules enforced **in the database** (not just the UI):
 
@@ -83,7 +96,7 @@ update public.profiles set role = 'admin' where email = 'owner@example.com';
 ## Project structure
 
 ```
-api/                  Vercel serverless functions (AI, privileged ops)    – Phase 6+
+api/                  Vercel serverless functions (menu-suggestions.js)
 supabase/migrations/  SQL schema, RLS policies, storage policies
 src/
   components/
@@ -101,7 +114,7 @@ src/
     admin/            Admin portal pages                                  – Phase 3+
   lib/                Supabase client and configuration
   services/           Database service functions (one file per domain)    – Phase 4+
-  ai/                 Client-side calls to the /api AI endpoints          – Phase 6
+  ai/                 Client-side calls to the /api AI endpoints
   pdf/                Quotation PDF generation                            – Phase 8
   utils/              Small shared helpers
 ```
@@ -119,7 +132,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 3. ✅ Authentication, profiles, protected customer and admin layouts. Verified live: sign-up and profile creation, login, logout, password change, route protection, customer blocked from admin, and the RLS checks (no self-promotion, own-profile-only). The email links themselves (confirmation and reset) depend on email delivery; re-test them once custom SMTP is configured.
 4. ✅ Dish management (admin: dishes with photos, categories, cuisines) and menu browsing (customer: search, cuisine/diet/range filters). Verified live 21 Nov 2026, including RLS (customers read-only, hidden categories invisible) and photo upload/cleanup
 5. ✅ Enquiry submission and tracking: a four-step enquiry form (event, optional dishes from the live menu, contact/budget, review) that autosaves a draft; enquiry list and detail pages with a status timeline; cancel while submitted or under review. Submission goes through a validated database function (prices snapshotted from `dishes`, max 10 enquiries per customer per day). Verified live 21 Nov 2026
-6. AI menu recommendations (server-side, database-only dishes)
+6. 🚧 AI menu recommendations: a "Suggest a menu" panel on the enquiry Menu step. `api/menu-suggestions.js` checks the caller's Supabase session, loads the catalogue with the caller's own token (RLS applies), claims a rate-limit slot, and asks Claude (`claude-opus-5-5`, JSON-schema output) to choose dishes by reference from that catalogue only. Unknown references are dropped, so names and prices always come from the database. Customers add suggestions one at a time or all at once; accepted dishes are stored with `source = 'ai'`. If the AI provider fails, times out or returns unusable output, the customer's daily slot is refunded (server-only, at most once per claim). Verified 21 Nov 2026 with mocked AI responses against the live database (64 handler checks) and on PostgreSQL 17 (33 refund/concurrency checks). Pending: live AI integration test (suggestion quality, dietary rules, prompt injection) once API credits are available
 7. Admin enquiry management and quotation builder
 8. PDF quotations and notifications
 9. Security, responsiveness and end-to-end testing

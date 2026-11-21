@@ -2,11 +2,12 @@ import { Pencil } from 'lucide-react'
 import DietMark from '@/components/catalogue/DietMark.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
-import { PRICING_UNITS, QUANTITY_UNITS } from '@/constants/catalogue.js'
+import { QUANTITY_UNITS } from '@/constants/catalogue.js'
 import { BUDGET_FLEXIBILITY, EVENT_TYPES, SERVICE_TYPES } from '@/constants/enquiry.js'
 import { formatEventDate, formatTime } from '@/utils/dates.js'
 import { formatCurrency } from '@/utils/format.js'
-import { estimateTotal } from './enquiryDraft.js'
+import { priceLabel } from '@/utils/catalogue.js'
+import { estimateAmount, estimateNote, estimateTotal } from './enquiryDraft.js'
 
 export function DetailList({ items }) {
   return (
@@ -71,8 +72,7 @@ export default function ReviewStep({ draft, menu, onEdit }) {
                       <DietMark labels={dish.dietary_labels} />
                       <span className="min-w-0 flex-1 font-medium text-ink-900">{dish.name}</span>
                       <span className="text-ink-500">
-                        {Number(s.quantity).toLocaleString('en-IN')} {QUANTITY_UNITS[dish.pricing_unit]} × {formatCurrency(dish.price)}
-                        <span className="sr-only"> {PRICING_UNITS[dish.pricing_unit]}</span>
+                        {Number(s.quantity).toLocaleString('en-IN')} {QUANTITY_UNITS[dish.pricing_unit]} × {priceLabel(dish.price, dish.pricing_unit)}
                       </span>
                     </li>
                   )
@@ -80,8 +80,11 @@ export default function ReviewStep({ draft, menu, onEdit }) {
               </ul>
               <p className="mt-4 flex justify-between border-t border-ivory-200 pt-4 text-sm">
                 <span className="font-medium text-ink-700">Estimated menu total</span>
-                <span className="text-lg font-semibold text-forest-800">{formatCurrency(estimateTotal(draft.dishes, dishById))}</span>
+                <span className="text-lg font-semibold text-forest-800">{estimateAmount(estimateTotal(draft.dishes, dishById))}</span>
               </p>
+              {estimateNote(estimateTotal(draft.dishes, dishById)) && (
+                <p className="mt-1 text-xs text-ink-500">{estimateNote(estimateTotal(draft.dishes, dishById))}</p>
+              )}
             </>
           )}
         </CardBody>

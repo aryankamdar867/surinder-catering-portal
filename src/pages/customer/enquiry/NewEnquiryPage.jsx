@@ -52,6 +52,7 @@ function Wizard({ menu, cuisineOptions }) {
   const [submitting, setSubmitting] = useState(false)
   const [failure, setFailure] = useState(null)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [suggestions, setSuggestions] = useState({ status: 'idle' })
   const headingRef = useRef(null)
   const submitted = useRef(false)
 
@@ -127,6 +128,7 @@ function Wizard({ menu, cuisineOptions }) {
     setErrors({})
     setFailure(null)
     setConfirmReset(false)
+    setSuggestions({ status: 'idle' })
     window.scrollTo({ top: 0 })
   }
 
@@ -180,7 +182,15 @@ function Wizard({ menu, cuisineOptions }) {
           />
         )}
         {step === 1 && (
-          <MenuStep menu={menu} selection={validDishes} guests={draft.event.guest_count} errors={errors} onChange={setDishes} />
+          <MenuStep
+            menu={menu}
+            selection={validDishes}
+            draft={draft}
+            errors={errors}
+            onChange={setDishes}
+            suggestions={suggestions}
+            setSuggestions={setSuggestions}
+          />
         )}
         {step === 2 && <ContactStep values={draft.contact} errors={errors} onChange={fieldHandler('contact')} />}
         {step === 3 && <ReviewStep draft={{ ...draft, dishes: validDishes }} menu={menu} onEdit={goTo} />}

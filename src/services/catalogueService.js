@@ -8,7 +8,8 @@ const GROUP_EDITABLE = ['name', 'description', 'sort_order', 'is_active']
 
 const DISH_COLUMNS =
   'id, name, description, category_id, cuisine_id, price, pricing_unit, dietary_labels, allergens, tier, ' +
-  'is_available, image_path, created_at, updated_at, category:categories(id, name, is_active), cuisine:cuisines(id, name, is_active)'
+  'is_available, image_path, base_ingredients, taste_profile, texture, cooking_method, region_origin, ' +
+  'created_at, updated_at, category:categories(id, name, is_active), cuisine:cuisines(id, name, is_active)'
 const DISH_EDITABLE = [
   'name',
   'description',

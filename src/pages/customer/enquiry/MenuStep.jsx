@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, Plus, Search, Trash2, UtensilsCrossed } from 'lucide-react'
+import { Check, Plus, Search, Sparkles, Trash2, UtensilsCrossed } from 'lucide-react'
 import DietMark from '@/components/catalogue/DietMark.jsx'
 import DishCard from '@/components/catalogue/DishCard.jsx'
 import Alert from '@/components/feedback/Alert.jsx'
@@ -8,27 +8,31 @@ import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import Field from '@/components/ui/Field.jsx'
 import ChipGroup from '@/components/ui/FilterChips.jsx'
-import { PRICING_UNITS, QUANTITY_UNITS } from '@/constants/catalogue.js'
+import { QUANTITY_UNITS } from '@/constants/catalogue.js'
 import { defaultQuantity } from '@/constants/enquiry.js'
-import { formatCurrency } from '@/utils/format.js'
-import { DIET_FILTERS, groupByCategory, matchesDiet, matchesSearch } from '@/utils/catalogue.js'
-import { estimateTotal } from './enquiryDraft.js'
+import { DIET_FILTERS, groupByCategory, matchesDiet, matchesSearch, priceLabel } from '@/utils/catalogue.js'
+import { estimateAmount, estimateNote, estimateTotal } from './enquiryDraft.js'
+import SuggestionsPanel from './SuggestionsPanel.jsx'
 
-export default function MenuStep({ menu, selection, guests, errors, onChange }) {
+export default function MenuStep({ menu, selection, draft, errors, onChange, suggestions, setSuggestions }) {
+  const guests = draft.event.guest_count
   const [q, setQ] = useState('')
   const [diet, setDiet] = useState('')
   const [category, setCategory] = useState('')
 
   const dishById = useMemo(() => new Map(menu.dishes.map((d) => [d.id, d])), [menu])
   const selectedIds = new Set(selection.map((s) => s.dish_id))
-  const total = estimateTotal(selection, dishById)
+  const estimate = estimateTotal(selection, dishById)
+  const unpricedNote = estimateNote(estimate)
 
   const sections = useMemo(() => {
     const matches = menu.dishes.filter((d) => matchesSearch(d, q) && matchesDiet(d, diet) && (!category || d.category_id === category))
     return groupByCategory(menu.categoryList, matches)
   }, [menu, q, diet, category])
 
-  const add = (dish) => onChange([...selection, { dish_id: dish.id, quantity: String(defaultQuantity(dish.pricing_unit, guests)) }])
+  const pick = (dish, source) => ({ dish_id: dish.id, quantity: String(defaultQuantity(dish.pricing_unit, guests)), source })
+  const add = (dish, source = 'customer') => onChange([...selection, pick(dish, source)])
+  const addMany = (dishes) => onChange([...selection, ...dishes.filter((d) => !selectedIds.has(d.id)).map((d) => pick(d, 'ai'))])
   const remove = (id) => onChange(selection.filter((s) => s.dish_id !== id))
   const setQty = (id, quantity) => onChange(selection.map((s) => (s.dish_id === id ? { ...s, quantity } : s)))
 
@@ -67,7 +71,12 @@ export default function MenuStep({ menu, selection, guests, errors, onChange }) 
                     <li key={s.dish_id} className="rounded-xl border border-ivory-200 bg-white p-3">
                       <div className="flex items-start gap-2">
                         <DietMark labels={dish.dietary_labels} className="mt-0.5" />
-                        <p className="min-w-0 flex-1 text-sm font-medium text-ink-900">{dish.name}</p>
+                        <p className="min-w-0 flex-1 text-sm font-medium text-ink-900">
+                          {dish.name}
+                          {s.source === 'ai' && (
+                            <Sparkles className="ml-1.5 inline size-3.5 text-gold-600" role="img" aria-label="Suggested" />
+                          )}
+                        </p>
                         <button
                           type="button"
                           onClick={() => remove(s.dish_id)}
@@ -92,7 +101,7 @@ export default function MenuStep({ menu, selection, guests, errors, onChange }) 
                           inputClassName="py-2"
                         />
                         <p className="pb-2 text-right text-xs text-ink-500">
-                          {formatCurrency(dish.price)} {PRICING_UNITS[dish.pricing_unit]}
+                          {priceLabel(dish.price, dish.pricing_unit)}
                         </p>
                       </div>
                     </li>
@@ -103,8 +112,9 @@ export default function MenuStep({ menu, selection, guests, errors, onChange }) 
             <div className="border-t border-ivory-200 pt-4">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm font-medium text-ink-700">Estimated menu total</span>
-                <span className="text-xl font-semibold text-forest-800">{formatCurrency(total)}</span>
+                <span className="text-xl font-semibold text-forest-800">{estimateAmount(estimate)}</span>
               </div>
+              {unpricedNote && <p className="mt-1 text-xs text-ink-500">{unpricedNote}</p>}
               <p className="mt-1 text-xs text-ink-400">
                 An estimate at today's prices. Your quotation will include final pricing, service and taxes.
               </p>
@@ -114,6 +124,16 @@ export default function MenuStep({ menu, selection, guests, errors, onChange }) 
       </aside>
 
       <div className="lg:order-1">
+        <SuggestionsPanel
+          draft={{ ...draft, dishes: selection }}
+          dishById={dishById}
+          selectedIds={selectedIds}
+          state={suggestions}
+          setState={setSuggestions}
+          onAdd={(dish) => add(dish, 'ai')}
+          onAddMany={addMany}
+        />
+
         <div className="mb-6 space-y-4 rounded-2xl border border-ivory-200 bg-white/70 p-4">
           <Field
             label="Search dishes"

@@ -21,7 +21,7 @@ import { deleteDish, listDishes, updateDish } from '@/services/catalogueService.
 import { removeDishImage } from '@/services/dishImageService.js'
 import { getErrorMessage } from '@/utils/errors.js'
 import { formatCurrency } from '@/utils/format.js'
-import { matchesDiet, uniqueOptions } from '@/utils/catalogue.js'
+import { hasPrice, matchesDiet, uniqueOptions } from '@/utils/catalogue.js'
 
 const initialFilters = { q: '', category: '', cuisine: '', diet: '', availability: '' }
 
@@ -201,8 +201,14 @@ export default function DishesPage() {
 
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
                       <p className="text-sm sm:w-36 sm:text-right">
-                        <span className="font-semibold text-ink-900">{formatCurrency(dish.price)}</span>{' '}
-                        <span className="text-ink-400">{PRICING_UNITS[dish.pricing_unit]}</span>
+                        {hasPrice(dish.price) ? (
+                          <>
+                            <span className="font-semibold text-ink-900">{formatCurrency(dish.price)}</span>{' '}
+                            <span className="text-ink-400">{PRICING_UNITS[dish.pricing_unit]}</span>
+                          </>
+                        ) : (
+                          <span className="text-ink-400">No price yet</span>
+                        )}
                       </p>
                       <Switch
                         checked={dish.is_available}

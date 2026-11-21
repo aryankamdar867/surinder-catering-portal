@@ -3,6 +3,7 @@ import DishImage from './DishImage.jsx'
 import Badge from '@/components/ui/Badge.jsx'
 import { ALLERGENS, DIETARY_LABELS, PRICING_UNITS } from '@/constants/catalogue.js'
 import { cn } from '@/utils/cn.js'
+import { dishDetails, hasPrice } from '@/utils/catalogue.js'
 import { formatCurrency } from '@/utils/format.js'
 
 // Labels already conveyed by the veg/non-veg mark.
@@ -11,6 +12,7 @@ const MARK_LABELS = ['vegetarian', 'non_vegetarian', 'eggetarian']
 /** Customer-facing dish card (renders an <li>). `action` adds a footer control, e.g. an Add button. */
 export default function DishCard({ dish, action, selected = false }) {
   const extraLabels = dish.dietary_labels.filter((l) => !MARK_LABELS.includes(l))
+  const details = dishDetails(dish)
   return (
     <li
       className={cn(
@@ -33,8 +35,14 @@ export default function DishCard({ dish, action, selected = false }) {
           <DietMark labels={dish.dietary_labels} className="mt-1" />
           <h3 className="font-sans text-base font-semibold tracking-normal text-ink-900">{dish.name}</h3>
         </div>
-        <p className="mt-0.5 text-xs text-ink-400">{dish.cuisine.name}</p>
-        {dish.description && <p className="mt-2 line-clamp-3 text-sm text-ink-500">{dish.description}</p>}
+        <p className="mt-0.5 text-xs text-ink-400">
+          {[dish.cuisine.name, dish.region_origin].filter(Boolean).join(' · ')}
+        </p>
+        {dish.description ? (
+          <p className="mt-2 line-clamp-3 text-sm text-ink-500">{dish.description}</p>
+        ) : (
+          details && <p className="mt-2 line-clamp-2 text-sm text-ink-500">{details}</p>
+        )}
         {extraLabels.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {extraLabels.map((l) => (
@@ -51,10 +59,14 @@ export default function DishCard({ dish, action, selected = false }) {
           </p>
         )}
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-          <p className="text-sm">
-            <span className="text-lg font-semibold text-forest-800">{formatCurrency(dish.price)}</span>{' '}
-            <span className="text-ink-400">{PRICING_UNITS[dish.pricing_unit]}</span>
-          </p>
+          {hasPrice(dish.price) ? (
+            <p className="text-sm">
+              <span className="text-lg font-semibold text-forest-800">{formatCurrency(dish.price)}</span>{' '}
+              <span className="text-ink-400">{PRICING_UNITS[dish.pricing_unit]}</span>
+            </p>
+          ) : (
+            <p className="text-sm font-medium text-ink-500">Price on request</p>
+          )}
           {action}
         </div>
       </div>

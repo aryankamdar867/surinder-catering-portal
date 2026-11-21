@@ -11,13 +11,14 @@ import Badge from '@/components/ui/Badge.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
-import { PRICING_UNITS, QUANTITY_UNITS } from '@/constants/catalogue.js'
+import { QUANTITY_UNITS } from '@/constants/catalogue.js'
 import { BUDGET_FLEXIBILITY, CANCELLABLE_STATUSES, ENQUIRY_STATUS, SERVICE_TYPES, eventTitle } from '@/constants/enquiry.js'
 import { useAsync } from '@/hooks/useAsync.js'
 import { cancelEnquiry, getEnquiry } from '@/services/enquiryService.js'
 import { cn } from '@/utils/cn.js'
 import { formatEventDate, formatTime } from '@/utils/dates.js'
 import { getErrorMessage } from '@/utils/errors.js'
+import { priceLabel } from '@/utils/catalogue.js'
 import { formatCurrency } from '@/utils/format.js'
 import EnquiryStatusBadge from './EnquiryStatusBadge.jsx'
 import { DetailList } from './ReviewStep.jsx'
@@ -136,14 +137,16 @@ export default function EnquiryDetailPage() {
                           {m.tier === 'premium' && <Badge tone="gold" className="ml-2">Premium</Badge>}
                           <span className="block text-xs text-ink-400">
                             {m.category_name} · {m.cuisine_name}
+                            {m.source === 'ai' && ' · Suggested'}
                           </span>
                         </span>
                         <span className="text-ink-500">
                           {Number(m.quantity).toLocaleString('en-IN')} {QUANTITY_UNITS[m.pricing_unit] ?? ''} ×{' '}
-                          {formatCurrency(m.unit_price)}
-                          <span className="sr-only"> {PRICING_UNITS[m.pricing_unit]}</span>
+                          {priceLabel(m.unit_price, m.pricing_unit)}
                         </span>
-                        <span className="w-28 text-right font-semibold text-ink-900">{formatCurrency(m.line_total)}</span>
+                        <span className="w-28 text-right font-semibold text-ink-900">
+                          {m.line_total === null ? 'On request' : formatCurrency(m.line_total)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -151,6 +154,9 @@ export default function EnquiryDetailPage() {
                     <span className="font-medium text-ink-700">Estimated menu total</span>
                     <span className="text-lg font-semibold text-forest-800">{formatCurrency(enquiry.estimated_menu_total)}</span>
                   </p>
+                  {enquiry.menu.some((m) => m.unit_price === null) && (
+                    <p className="mt-1 text-xs text-ink-500">Dishes priced on request aren't included in this estimate.</p>
+                  )}
                   <p className="mt-1 text-xs text-ink-400">Final pricing, service charges and taxes will be in your quotation.</p>
                 </>
               )}

@@ -1,4 +1,17 @@
+import { PRICING_UNITS } from '@/constants/catalogue.js'
+import { formatCurrency } from '@/utils/format.js'
+
 const VEG = ['vegetarian', 'vegan', 'jain']
+
+/** Dishes from the official menu start without a price ("price on request"). */
+export const hasPrice = (price) => price !== null && price !== undefined && price !== '' && Number.isFinite(Number(price))
+
+/** "₹120 per person", or "Price on request" when no price is set yet. */
+export const priceLabel = (price, unit) =>
+  hasPrice(price) ? `${formatCurrency(price)} ${PRICING_UNITS[unit] ?? ''}`.trim() : 'Price on request'
+
+/** Short descriptive line built only from the menu's own fields (never invented). */
+export const dishDetails = (dish) => [dish.base_ingredients, dish.taste_profile].filter(Boolean).join(' · ')
 
 export const DIET_FILTERS = [
   ['veg', 'Vegetarian'],
@@ -27,7 +40,12 @@ export function matchesDiet(dish, diet) {
 
 export function matchesSearch(dish, query) {
   const term = query.trim().toLowerCase()
-  return !term || dish.name.toLowerCase().includes(term) || Boolean(dish.description?.toLowerCase().includes(term))
+  return (
+    !term ||
+    [dish.name, dish.description, dish.base_ingredients, dish.taste_profile, dish.region_origin].some((v) =>
+      v?.toLowerCase().includes(term),
+    )
+  )
 }
 
 /** Distinct {id, name} pairs for an embedded relation ('category' | 'cuisine'), sorted by name. */

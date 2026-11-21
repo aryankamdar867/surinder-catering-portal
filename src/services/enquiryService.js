@@ -23,7 +23,8 @@ async function run(query) {
 
 /**
  * `draft` is the wizard state: { event, dishes: [{ dish_id, quantity }], contact }.
- * Only ids and quantities are sent for dishes – names and prices come from the database.
+ * Only ids, quantities and source ('ai' for accepted suggestions) are sent for dishes –
+ * names and prices come from the database.
  */
 export function submitEnquiry(draft) {
   return run(
@@ -31,7 +32,11 @@ export function submitEnquiry(draft) {
       payload: {
         event: draft.event,
         contact: draft.contact,
-        dishes: draft.dishes.map(({ dish_id, quantity }) => ({ dish_id, quantity: Number(quantity) })),
+        dishes: draft.dishes.map(({ dish_id, quantity, source }) => ({
+          dish_id,
+          quantity: Number(quantity),
+          source: source === 'ai' ? 'ai' : 'customer',
+        })),
       },
     }),
   )
