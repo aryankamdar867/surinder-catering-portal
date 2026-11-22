@@ -59,6 +59,7 @@ The schema lives in `supabase/migrations/` and is applied in filename order:
 | `…_ai_suggestions.sql` | `claim_ai_suggestion()` rate limit (3/minute, 20/day per user) and `submit_enquiry` recording `source = 'ai'` for accepted suggestions |
 | `…_menu_catalogue.sql` | Nullable dish `price` ("price on request"), the menu's five descriptive columns, and dish names unique per category |
 | `…_ai_suggestion_refunds.sql` | `refund_ai_suggestion()`: gives back one suggestion slot when the AI provider fails or times out. Server-only (needs `SUPABASE_SECRET_KEY`), at most once per claim |
+| `…_quotation_workflow.sql` | Owner enquiry status changes (`set_enquiry_status`) and the quotation lifecycle: create, save draft, send, revise, withdraw, discard, and the customer's accept/decline. Quotation tables become read-only through the API; all writes go through these functions |
 
 ### Importing the official menu
 
@@ -77,7 +78,8 @@ Key rules enforced **in the database** (not just the UI):
 - Dish names and prices in enquiries and quotations are **snapshots** taken from the `dishes` table. Client-supplied prices are ignored. Editing or deleting a dish never changes history.
 - Quotation totals (subtotal, charges, discount, GST, total, advance, balance) are computed by the database. A version is locked once sent; changes require a new revision.
 - Logged-out visitors have no table access.
-- Customers cannot insert or update enquiry tables directly; `submit_enquiry()` / `cancel_enquiry()` always act as the signed-in user. Enquiries can't be deleted through the API, and an account that has enquiries can't be deleted from the dashboard (`on delete restrict`) so business records survive.
+- Customers cannot insert or update enquiry tables directly; `submit_enquiry()` / `cancel_enquiry()` always act as the signed-in user.
+- Enquiry status only changes through the database functions, which enforce the allowed transitions (an admin's direct `update … set status` is rejected). Quotations, versions and items cannot be written directly by anyone using the API, admins included. A quotation is sent, revised, withdrawn, accepted or declined only through validated functions, so a customer can only accept the exact version they were shown, before it expires. Enquiries can't be deleted through the API, and an account that has enquiries can't be deleted from the dashboard (`on delete restrict`) so business records survive.
 
 ### Authentication setup (Supabase dashboard)
 
@@ -103,6 +105,7 @@ src/
     brand/            Logo and brand elements
     ui/               Reusable design-system components (Button, …)
     catalogue/        Dish photo, veg/non-veg mark, image picker
+    quotation/        Read-only quotation document and totals (owner preview + customer view)
     feedback/         Alerts, loaders, empty states, confirm dialog
   constants/          Labels that mirror database CHECK constraints
   hooks/              useForm, useAsync
@@ -133,7 +136,7 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 4. ✅ Dish management (admin: dishes with photos, categories, cuisines) and menu browsing (customer: search, cuisine/diet/range filters). Verified live 21 Nov 2026, including RLS (customers read-only, hidden categories invisible) and photo upload/cleanup
 5. ✅ Enquiry submission and tracking: a four-step enquiry form (event, optional dishes from the live menu, contact/budget, review) that autosaves a draft; enquiry list and detail pages with a status timeline; cancel while submitted or under review. Submission goes through a validated database function (prices snapshotted from `dishes`, max 10 enquiries per customer per day). Verified live 21 Nov 2026
 6. 🚧 AI menu recommendations: a "Suggest a menu" panel on the enquiry Menu step. `api/menu-suggestions.js` checks the caller's Supabase session, loads the catalogue with the caller's own token (RLS applies), claims a rate-limit slot, and asks Claude (`claude-opus-5-5`, JSON-schema output) to choose dishes by reference from that catalogue only. Unknown references are dropped, so names and prices always come from the database. Customers add suggestions one at a time or all at once; accepted dishes are stored with `source = 'ai'`. If the AI provider fails, times out or returns unusable output, the customer's daily slot is refunded (server-only, at most once per claim). Verified 21 Nov 2026 with mocked AI responses against the live database (64 handler checks) and on PostgreSQL 17 (33 refund/concurrency checks). Pending: live AI integration test (suggestion quality, dietary rules, prompt injection) once API credits are available
-7. Admin enquiry management and quotation builder
+7. ✅ Admin enquiry management and quotation builder: an Enquiries area for the owner (status filters, search, detail page with contact links, internal notes and a status history), and status actions (start review, decline or cancel with an optional message to the customer, mark completed on or after the event date). The quotation builder starts from the customer's requested dishes. It supports itemised or per-person pricing, custom items, additional charges, a fixed or percentage discount, GST, an advance, a validity date, terms and a note, with a live totals preview. Totals are always recalculated by the database. Sending locks the version; changes go out as revisions, and the customer always sees the latest one. Customers review the quotation in their account and accept it (the event is confirmed) or decline it with a note (the enquiry returns to review, and the note is kept as an internal note). Amounts above ₹1,000 crore are rejected with a clear message. Verified live 22 Nov 2026 against the Supabase project with the test admin and two test customers (300 automated checks, plus one mis-scoped check verified by hand): status transitions and history, internal notes, quotation creation, sending, revisions, withdrawal, discard, customer accept/decline (including a simultaneous accept and decline), cross-customer isolation, and blocked direct writes by customers and admins. Totals (GST, discounts, advance, rounding) were matched to the paisa against an exact calculation and the client preview in 56 cases, 40 of them randomised. Earlier verified on PostgreSQL (PGlite, 88 checks). Expiry at the end of the validity date was verified on PGlite only, because a quotation can't be sent with a past date
 8. PDF quotations and notifications
 9. Security, responsiveness and end-to-end testing
 

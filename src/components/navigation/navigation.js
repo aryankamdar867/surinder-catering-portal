@@ -11,6 +11,7 @@ export const CUSTOMER_NAV = [
 
 export const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/enquiries', label: 'Enquiries', icon: ClipboardList },
   { to: '/admin/dishes', label: 'Dishes', icon: UtensilsCrossed },
   { to: '/admin/catalogue', label: 'Categories & cuisines', icon: Tags },
 ]

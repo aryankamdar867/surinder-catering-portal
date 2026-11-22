@@ -1,14 +1,27 @@
-import { ArrowRight, ShieldCheck, Tags, UtensilsCrossed } from 'lucide-react'
+import { ArrowRight, CalendarCheck, ClipboardList, ShieldCheck, Tags, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody } from '@/components/ui/Card.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
 import { useAsync } from '@/hooks/useAsync.js'
+import { listAllEnquiries } from '@/services/adminEnquiryService.js'
 import { categories, cuisines, listDishes } from '@/services/catalogueService.js'
+import { todayInIndia } from '@/utils/dates.js'
 
 async function loadStats() {
-  const [dishes, categoryList, cuisineList] = await Promise.all([listDishes(), categories.list(), cuisines.list()])
+  const [dishes, categoryList, cuisineList, enquiries] = await Promise.all([
+    listDishes(),
+    categories.list(),
+    cuisines.list(),
+    listAllEnquiries(),
+  ])
+  const today = todayInIndia()
+  const count = (statuses) => enquiries.filter((e) => statuses.includes(e.status)).length
   return {
+    newEnquiries: count(['submitted']),
+    inReview: count(['under_review']),
+    awaiting: count(['quoted']),
+    upcoming: enquiries.filter((e) => e.status === 'confirmed' && e.event?.event_date >= today).length,
     dishes: dishes.length,
     available: dishes.filter((d) => d.is_available).length,
     categories: categoryList.length,
@@ -50,6 +63,22 @@ export default function AdminDashboardPage() {
       <PageHeader eyebrow="Owner portal" title={`Hello, ${firstName}`} description="Manage Surinder Caterers." />
 
       <div className="grid gap-6 sm:grid-cols-2">
+        <StatCard
+          icon={ClipboardList}
+          label="Enquiries needing action"
+          value={show(stats && stats.newEnquiries + stats.inReview)}
+          detail={stats && `${stats.newEnquiries} new · ${stats.inReview} in review · ${stats.awaiting} awaiting the customer`}
+          to="/admin/enquiries"
+          cta="Review enquiries"
+        />
+        <StatCard
+          icon={CalendarCheck}
+          label="Upcoming confirmed events"
+          value={show(stats?.upcoming)}
+          detail={stats && 'Accepted quotations with an event date ahead'}
+          to="/admin/enquiries"
+          cta="View enquiries"
+        />
         <StatCard
           icon={UtensilsCrossed}
           label="Dishes"

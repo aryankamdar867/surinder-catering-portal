@@ -19,11 +19,15 @@ const MenuPage = lazy(() => import('@/pages/customer/MenuPage.jsx'))
 const EnquiriesPage = lazy(() => import('@/pages/customer/enquiry/EnquiriesPage.jsx'))
 const NewEnquiryPage = lazy(() => import('@/pages/customer/enquiry/NewEnquiryPage.jsx'))
 const EnquiryDetailPage = lazy(() => import('@/pages/customer/enquiry/EnquiryDetailPage.jsx'))
+const CustomerQuotationPage = lazy(() => import('@/pages/customer/quotation/CustomerQuotationPage.jsx'))
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage.jsx'))
 const DishesPage = lazy(() => import('@/pages/admin/DishesPage.jsx'))
 const DishFormPage = lazy(() => import('@/pages/admin/DishFormPage.jsx'))
 const CatalogueGroupsPage = lazy(() => import('@/pages/admin/CatalogueGroupsPage.jsx'))
+const AdminEnquiriesPage = lazy(() => import('@/pages/admin/enquiries/AdminEnquiriesPage.jsx'))
+const AdminEnquiryDetailPage = lazy(() => import('@/pages/admin/enquiries/AdminEnquiryDetailPage.jsx'))
+const QuotationPage = lazy(() => import('@/pages/admin/quotations/QuotationPage.jsx'))
 
 export default function App() {
   return (
@@ -55,12 +59,16 @@ export default function App() {
             <Route path="enquiries" element={<EnquiriesPage />} />
             <Route path="enquiries/new" element={<NewEnquiryPage />} />
             <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
+            <Route path="quotations/:id" element={<CustomerQuotationPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           <Route path="admin" element={<RequireAdmin />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboardPage />} />
+              <Route path="enquiries" element={<AdminEnquiriesPage />} />
+              <Route path="enquiries/:id" element={<AdminEnquiryDetailPage />} />
+              <Route path="quotations/:id" element={<QuotationPage />} />
               <Route path="dishes" element={<DishesPage />} />
               <Route path="dishes/new" element={<DishFormPage />} />
               <Route path="dishes/:id" element={<DishFormPage />} />

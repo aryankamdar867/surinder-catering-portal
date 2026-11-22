@@ -19,6 +19,7 @@ const AUTH_MESSAGES = {
 }
 
 const DB_MESSAGES = {
+  22003: 'One of the amounts is too large.',
   23505: 'This record already exists.',
   23514: 'Some of the details entered are not valid.',
   23503: 'This item is linked to other records and cannot be changed.',

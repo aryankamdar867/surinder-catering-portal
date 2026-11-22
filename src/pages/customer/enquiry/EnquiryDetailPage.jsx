@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { ArrowLeft, Ban, FileQuestion, TriangleAlert } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { ArrowLeft, Ban, ChevronRight, FileQuestion, FileText, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import DietMark from '@/components/catalogue/DietMark.jsx'
 import Alert from '@/components/feedback/Alert.jsx'
@@ -11,6 +11,7 @@ import Badge from '@/components/ui/Badge.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
+import { QuotationStatusBadge } from '@/components/quotation/QuotationDocument.jsx'
 import { QUANTITY_UNITS } from '@/constants/catalogue.js'
 import { BUDGET_FLEXIBILITY, CANCELLABLE_STATUSES, ENQUIRY_STATUS, SERVICE_TYPES, eventTitle } from '@/constants/enquiry.js'
 import { useAsync } from '@/hooks/useAsync.js'
@@ -20,6 +21,7 @@ import { formatEventDate, formatTime } from '@/utils/dates.js'
 import { getErrorMessage } from '@/utils/errors.js'
 import { priceLabel } from '@/utils/catalogue.js'
 import { formatCurrency } from '@/utils/format.js'
+import { isExpired } from '@/utils/quotation.js'
 import EnquiryStatusBadge from './EnquiryStatusBadge.jsx'
 import { DetailList } from './ReviewStep.jsx'
 
@@ -101,6 +103,38 @@ export default function EnquiryDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
+          {enquiry.quotations.map((q) => {
+            const status = q.status === 'sent' && isExpired(q.current) ? 'expired' : q.status
+            return (
+              <Link
+                key={q.id}
+                to={`/account/quotations/${q.id}`}
+                className={cn(
+                  'group flex items-center gap-4 rounded-2xl border p-5 shadow-card transition hover:border-forest-600',
+                  status === 'sent' ? 'border-gold-300 bg-gold-300/10' : 'border-ivory-200 bg-white/80',
+                )}
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700">
+                  <FileText className="size-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-ink-900">
+                      {status === 'sent' ? 'Your quotation is ready' : `Quotation ${q.quotation_number}`}
+                    </span>
+                    <QuotationStatusBadge status={status} />
+                  </span>
+                  {q.current && (
+                    <span className="mt-0.5 block text-sm text-ink-500">
+                      {formatCurrency(q.current.total_amount)} · valid until {formatEventDate(q.current.valid_until)}
+                    </span>
+                  )}
+                </span>
+                <ChevronRight className="size-5 shrink-0 text-ink-400 transition group-hover:translate-x-0.5 group-hover:text-forest-700" aria-hidden="true" />
+              </Link>
+            )
+          })}
+
           <Card>
             <CardHeader title="Event details" />
             <CardBody>

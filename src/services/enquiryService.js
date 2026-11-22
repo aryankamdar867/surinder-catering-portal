@@ -13,7 +13,10 @@ const DETAIL_COLUMNS =
   'event:event_details(*), ' +
   'menu:menu_selections(id, dish_id, dish_name, category_name, cuisine_name, unit_price, pricing_unit, ' +
   'dietary_labels, tier, quantity, line_total, source), ' +
-  'history:enquiry_status_history(id, from_status, to_status, created_at)'
+  'history:enquiry_status_history(id, from_status, to_status, created_at), ' +
+  // RLS shows customers only quotations that have been sent to them.
+  'quotations(id, quotation_number, status, responded_at, ' +
+  'current:quotation_versions!quotations_current_version_fk(version_number, total_amount, valid_until))'
 
 async function run(query) {
   const { data, error } = await query
