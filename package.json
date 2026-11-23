@@ -8,7 +8,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:cleanup": "node e2e/support/cleanup.js",
+    "test:e2e:remove-account": "node e2e/support/cleanup.js --remove-account"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",
@@ -23,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/vite": "^4.3.5",
     "@vitejs/plugin-react": "^6.3.0",
     "eslint": "^10.15.0",

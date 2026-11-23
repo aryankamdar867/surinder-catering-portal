@@ -92,8 +92,11 @@ export default function NotificationBell({ allPath, tone = 'light', align = 'rig
           role="region"
           aria-label="Notifications"
           className={cn(
-            'absolute z-50 mt-2 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-ivory-200 bg-white text-left shadow-xl',
-            align === 'left' ? 'left-0' : 'right-0',
+            'z-50 overflow-hidden rounded-2xl border border-ivory-200 bg-white text-left shadow-xl',
+            // Phones: span the screen below the header (the bell isn't always at the right edge).
+            'max-sm:fixed max-sm:inset-x-4 max-sm:top-20',
+            'sm:absolute sm:mt-2 sm:w-[23rem]',
+            align === 'left' ? 'sm:left-0' : 'sm:right-0',
           )}
         >
           <div className="flex items-center justify-between gap-3 border-b border-ivory-200 px-4 py-3">

@@ -26,3 +26,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 *.local
+
+# Playwright
+e2e/.auth/
+test-results/
+playwright-report/

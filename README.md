@@ -35,13 +35,27 @@ npm run dev                  # http://localhost:5173
 | `npm run build`   | Production build to `dist` |
 | `npm run preview` | Serve the production build |
 | `npm run lint`    | Run ESLint                 |
+| `npm run test:e2e` | End-to-end tests (Playwright; see [Testing](#testing)) |
+| `npm run test:e2e:cleanup` | Remove all data created by the E2E tests |
+
+## Testing
+
+`npm run test:e2e` builds the app, serves it with `vite preview`, and drives Chromium through it. `vite preview` serves `/api` like Vercel and sends the security headers from `vercel.json`, so the tests run under the production Content-Security-Policy. Any CSP violation or uncaught error on a page fails the test. One-time setup: `npx playwright install chromium`.
+
+The tests run against the **live Supabase project** and need `SUPABASE_SECRET_KEY` in `.env.local`. They sign in as the test admin (`surinder-test-admin@example.com`) and an E2E customer (`e2e.customer@example.com`, created on the first run). Sessions are minted server-side from a magic-link token, so no passwords are used and no emails are sent.
+
+- `e2e/security.spec.js`: security headers, route guards for signed-out users and customers, off-site `?redirect=` values ignored, RLS checks (other profiles, owner notes, self-promotion), and API auth (401 without a session, 404 for quotations the caller can't see, 404 for unknown routes).
+- `e2e/responsive.spec.js`: every main page on desktop and on a phone (Pixel 7) shows its heading and does not scroll sideways. Also checks that the navigation and the notification panel fit a phone screen.
+- `e2e/flow.spec.js`: the full story through the UI. A customer sends an enquiry with two dishes, the owner starts a review and sends a per-person quotation, the customer is notified, downloads the PDF (checked to be a real PDF) and accepts, and the owner sees the confirmed event and the notification. Each detail page is also checked at phone width.
+
+Everything the tests create belongs to the E2E customer (venues are tagged `[E2E]`) and is deleted at the end of each run. Set `E2E_KEEP_DATA=1` to keep it for debugging, then run `npm run test:e2e:cleanup`. `npm run test:e2e:remove-account` also deletes the E2E customer account. Cleanup needs migration `20261128090000_server_cleanup_deletes.sql`.
 
 ## Environment variables
 
 See `.env.example`.
 
 - `VITE_*` variables are bundled into the browser. Only **public** values belong there (the Supabase URL and publishable key).
-- `ANTHROPIC_API_KEY` (and `SUPABASE_SECRET_KEY`, reserved for later phases) are **server-only**. They are used only inside `/api` functions and set in Vercel's environment settings. Never prefix them with `VITE_`. In development, put them in `.env.local`: `npm run dev` serves `/api/*` from the `api/` folder and passes them only to those handlers. `src/lib/supabase.js` refuses to start if a secret key is configured for the browser.
+- `ANTHROPIC_API_KEY` and `SUPABASE_SECRET_KEY` are **server-only**. `SUPABASE_SECRET_KEY` is used by the menu-suggestion refunds and by the E2E test tooling. They are used only inside `/api` functions and set in Vercel's environment settings. Never prefix them with `VITE_`. In development, put them in `.env.local`: `npm run dev` serves `/api/*` from the `api/` folder and passes them only to those handlers. `src/lib/supabase.js` refuses to start if a secret key is configured for the browser.
 - `.env` and `.env.local` are git-ignored.
 
 ## Database
@@ -103,6 +117,7 @@ api/                  Vercel serverless functions (menu-suggestions.js, quotatio
   _lib/               Server-only helpers (quotation PDF layout); not routes
   _fonts/             Noto Sans (SIL Open Font License) embedded in PDFs for the ₹ sign
 supabase/migrations/  SQL schema, RLS policies, storage policies
+e2e/                  Playwright end-to-end tests; support/ holds sign-in, cleanup and fixtures
 src/
   components/
     brand/            Logo and brand elements
@@ -143,10 +158,10 @@ Colour tokens: `ivory` (backgrounds), `forest` (primary), `burgundy` (accent and
 6. 🚧 AI menu recommendations: a "Suggest a menu" panel on the enquiry Menu step. `api/menu-suggestions.js` checks the caller's Supabase session, loads the catalogue with the caller's own token (RLS applies), claims a rate-limit slot, and asks Claude (`claude-opus-5-5`, JSON-schema output) to choose dishes by reference from that catalogue only. Unknown references are dropped, so names and prices always come from the database. Customers add suggestions one at a time or all at once; accepted dishes are stored with `source = 'ai'`. If the AI provider fails, times out or returns unusable output, the customer's daily slot is refunded (server-only, at most once per claim). Verified 21 Nov 2026 with mocked AI responses against the live database (64 handler checks) and on PostgreSQL 17 (33 refund/concurrency checks). Pending: live AI integration test (suggestion quality, dietary rules, prompt injection) once API credits are available
 7. ✅ Admin enquiry management and quotation builder: an Enquiries area for the owner (status filters, search, detail page with contact links, internal notes and a status history), and status actions (start review, decline or cancel with an optional message to the customer, mark completed on or after the event date). The quotation builder starts from the customer's requested dishes. It supports itemised or per-person pricing, custom items, additional charges, a fixed or percentage discount, GST, an advance, a validity date, terms and a note, with a live totals preview. Totals are always recalculated by the database. Sending locks the version; changes go out as revisions, and the customer always sees the latest one. Customers review the quotation in their account and accept it (the event is confirmed) or decline it with a note (the enquiry returns to review, and the note is kept as an internal note). Amounts above ₹1,000 crore are rejected with a clear message. Verified live 22 Nov 2026 against the Supabase project with the test admin and two test customers (300 automated checks, plus one mis-scoped check verified by hand): status transitions and history, internal notes, quotation creation, sending, revisions, withdrawal, discard, customer accept/decline (including a simultaneous accept and decline), cross-customer isolation, and blocked direct writes by customers and admins. Totals (GST, discounts, advance, rounding) were matched to the paisa against an exact calculation and the client preview in 56 cases, 40 of them randomised. Earlier verified on PostgreSQL (PGlite, 88 checks). Expiry at the end of the validity date was verified on PGlite only, because a quotation can't be sent with a past date
 8. 🚧 PDF quotations and in-app notifications: `api/quotation-pdf.js` builds an A4 PDF of any quotation version on the server (pdfkit, embedded Noto Sans for ₹). It reads with the caller's own session, so RLS decides access: customers get only versions sent to them, and the owner can also preview drafts. Anything else is a plain 404. The PDF prints the database's saved totals, the total in words (lakh/crore), and the customer, event and business details. Superseded, withdrawn, declined, expired and draft versions are watermarked. Download buttons are on the customer quotation page and the owner's quotation page and editor. In-app notifications: a bell with an unread count and live updates (Supabase Realtime), a notifications page (filter, load more, mark read, delete), and a latest-notifications card on both dashboards. Links in notifications are followed only within the app. Email notifications are planned for a later phase. Pending: apply `…_notifications.sql`, live checks, and a production PDF download after deploy
-9. Security, responsiveness and end-to-end testing
+9. 🚧 Security, responsiveness and end-to-end testing: security headers on every response (`vercel.json`: a strict Content-Security-Policy with no inline or eval scripts, no framing, HSTS, nosniff, a strict referrer policy, a locked-down permissions policy, COOP) and long-lived caching for hashed assets. A Playwright suite (see [Testing](#testing)) covers the headers, route guards, open redirects, RLS spot checks, API auth, phone and desktop layouts of every main page, and the full enquiry → quotation → PDF → acceptance flow. Fixed: the notification panel ran off the left edge of the screen on phones. Migration `…_server_cleanup_deletes.sql` lets server-side roles (never app users) delete sent quotation versions, so test data can be removed. 59 tests pass locally against the live project (23 Nov 2026). Pending: apply the migration, check the headers on the deployed site (sign-in, menu photos, PDF download, live notifications)
 
 ## Deployment (Vercel)
 
-Before launch, fill in the business details printed on quotation PDFs in `src/constants/business.js` (address, phone, email, GSTIN, payment details). Anything left `null` is simply left off the PDF.
+Before launch: remove the test accounts (the test admin and the earlier test customers, plus `npm run test:e2e:remove-account` for the E2E customer). Then fill in the business details printed on quotation PDFs in `src/constants/business.js` (address, phone, email, GSTIN, payment details). Anything left `null` is simply left off the PDF.
 
 Framework preset: **Vite**. Build command: `npm run build`. Output directory: `dist`. `vercel.json` rewrites every non-`/api` route to `index.html` so client-side routes work on refresh.
