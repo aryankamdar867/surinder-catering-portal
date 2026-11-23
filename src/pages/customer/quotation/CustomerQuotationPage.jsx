@@ -6,6 +6,7 @@ import Alert from '@/components/feedback/Alert.jsx'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog.jsx'
 import PageLoader from '@/components/feedback/PageLoader.jsx'
 import StatusScreen from '@/components/feedback/StatusScreen.jsx'
+import DownloadPdfButton from '@/components/quotation/DownloadPdfButton.jsx'
 import QuotationDocument, { QuotationStatusBadge } from '@/components/quotation/QuotationDocument.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
@@ -117,7 +118,12 @@ export default function CustomerQuotationPage() {
         eyebrow={quotation.quotation_number}
         title={`Quotation · ${eventTitle(quotation.enquiry.event)}`}
         description={`${formatEventDate(quotation.enquiry.event?.event_date)} · ${quotation.enquiry.event?.venue_name}`}
-        actions={<QuotationStatusBadge status={status} />}
+        actions={
+          <span className="flex flex-wrap items-center gap-3">
+            <QuotationStatusBadge status={status} />
+            {version && <DownloadPdfButton quotationId={quotation.id} versionId={version.id} />}
+          </span>
+        }
       />
 
       {version ? (
@@ -165,7 +171,11 @@ export default function CustomerQuotationPage() {
               <div className="mt-4 space-y-4">
                 {earlier.map((v) => (
                   <Card key={v.id} className="opacity-80">
-                    <CardHeader title={`Version ${v.version_number}`} description="Replaced by a newer version." />
+                    <CardHeader
+                      title={`Version ${v.version_number}`}
+                      description="Replaced by a newer version."
+                      action={<DownloadPdfButton quotationId={quotation.id} versionId={v.id} variant="ghost" />}
+                    />
                     <CardBody>
                       <QuotationDocument quotation={quotation} version={v} />
                     </CardBody>

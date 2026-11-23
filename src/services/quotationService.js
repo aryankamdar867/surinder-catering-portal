@@ -97,6 +97,38 @@ export function discardDraft(quotationId) {
   return run(supabase.rpc('discard_quotation_draft', { p_quotation_id: quotationId }))
 }
 
+/**
+ * Downloads one version as a PDF from /api/quotation-pdf (built on the server with the
+ * caller's own session, so RLS decides access). Saves it with the server's filename.
+ */
+export async function downloadQuotationPdf(quotationId, versionId) {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+  const params = new URLSearchParams({ quotation: quotationId, version: versionId })
+  let response
+  try {
+    response = await fetch(`/api/quotation-pdf?${params}`, { headers: { authorization: `Bearer ${token}` } })
+  } catch (err) {
+    throw new Error('Network error. Check your internet connection and try again.', { cause: err })
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.error ?? "We couldn't create the PDF. Please try again.")
+  }
+
+  const blob = await response.blob()
+  const filename =
+    /filename="([^"]+)"/.exec(response.headers.get('content-disposition') ?? '')?.[1] ?? 'quotation.pdf'
+  const url = URL.createObjectURL(blob)
+  const link = Object.assign(document.createElement('a'), { href: url, download: filename })
+  document.body.append(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
 /** Customer: `decision` is 'accept' or 'reject'; `versionId` is the version they reviewed. */
 export function respondToQuotation(quotationId, versionId, decision, note) {
   return run(

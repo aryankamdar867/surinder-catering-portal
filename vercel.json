@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": { "api/*.js": { "maxDuration": 60 } },
+  "functions": {
+    "api/menu-suggestions.js": { "maxDuration": 60 },
+    "api/quotation-pdf.js": {
+      "maxDuration": 30,
+      "includeFiles": "{api/_fonts/**,node_modules/pdfkit/js/data/**}"
+    }
+  },
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }

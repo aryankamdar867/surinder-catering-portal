@@ -6,6 +6,7 @@ import Alert from '@/components/feedback/Alert.jsx'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog.jsx'
 import PageLoader from '@/components/feedback/PageLoader.jsx'
 import StatusScreen from '@/components/feedback/StatusScreen.jsx'
+import DownloadPdfButton from '@/components/quotation/DownloadPdfButton.jsx'
 import QuotationDocument, { QuotationStatusBadge } from '@/components/quotation/QuotationDocument.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
@@ -96,6 +97,7 @@ function VersionHistory({ quotation, exclude }) {
                 <ChevronDown className="ml-auto size-4 text-ink-400 transition group-open:rotate-180" aria-hidden="true" />
               </summary>
               <div className="border-t border-ivory-200 px-5 py-5 sm:px-6">
+                <DownloadPdfButton quotationId={quotation.id} versionId={v.id} variant="ghost" className="-ml-3 mb-3" />
                 <QuotationDocument quotation={quotation} version={v} />
               </div>
             </details>
@@ -259,6 +261,7 @@ export default function QuotationPage() {
           <CardHeader
             title={`Version ${current.version_number}`}
             description="As the customer sees it."
+            action={<DownloadPdfButton quotationId={quotation.id} versionId={current.id} />}
           />
           <CardBody>
             <QuotationDocument quotation={quotation} version={current} />

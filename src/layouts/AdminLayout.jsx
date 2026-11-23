@@ -4,7 +4,9 @@ import { LogOut, Menu, UserRound, X } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
 import { useSignOut } from '@/auth/useSignOut.js'
 import Logo from '@/components/brand/Logo.jsx'
+import NotificationBell from '@/components/notifications/NotificationBell.jsx'
 import { ADMIN_NAV } from '@/components/navigation/navigation.js'
+import NotificationsProvider from '@/notifications/NotificationsProvider.jsx'
 import { cn } from '@/utils/cn.js'
 
 const linkClass = ({ isActive }) =>
@@ -13,14 +15,17 @@ const linkClass = ({ isActive }) =>
     isActive ? 'bg-ivory-50 text-forest-900' : 'text-ivory-200/80 hover:bg-white/10 hover:text-ivory-50',
   )
 
-function SidebarContent({ onNavigate }) {
+function SidebarContent({ onNavigate, showBell = false }) {
   const { profile } = useAuth()
   const { signOut, signingOut } = useSignOut()
 
   return (
     <div className="flex h-full flex-col">
       <div>
-        <Logo light />
+        <div className="flex items-start justify-between gap-2">
+          <Logo light />
+          {showBell && <NotificationBell allPath="/admin/notifications" tone="dark" align="left" />}
+        </div>
         <span className="mt-4 inline-block rounded-full border border-gold-300/40 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-300">
           Owner portal
         </span>
@@ -59,54 +64,65 @@ export default function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-dvh bg-ivory-50 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-dvh bg-forest-900 p-6 lg:block">
-        <SidebarContent />
-      </aside>
+    <NotificationsProvider>
+      <div className="min-h-dvh bg-ivory-50 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-dvh bg-forest-900 p-6 lg:block">
+          <SidebarContent showBell />
+        </aside>
 
-      <div className="flex min-h-dvh flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between bg-forest-900 px-4 lg:hidden">
-          <Logo light />
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="grid size-10 place-items-center rounded-xl text-ivory-50 hover:bg-white/10"
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            aria-controls="admin-mobile-menu"
-          >
-            <Menu className="size-5" aria-hidden="true" />
-          </button>
-        </header>
-
-        {menuOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden" id="admin-mobile-menu" role="dialog" aria-modal="true" aria-label="Menu">
-            <button
-              type="button"
-              className="absolute inset-0 bg-ink-900/50"
-              aria-label="Close menu"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="relative h-full w-72 max-w-[85vw] bg-forest-900 p-6">
+        <div className="flex min-h-dvh flex-col">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between bg-forest-900 px-4 lg:hidden">
+            <Logo light />
+            <div className="flex items-center gap-1">
+              <NotificationBell allPath="/admin/notifications" tone="dark" />
               <button
                 type="button"
-                onClick={() => setMenuOpen(false)}
-                className="absolute right-4 top-4 grid size-9 place-items-center rounded-lg text-ivory-50 hover:bg-white/10"
-                aria-label="Close menu"
+                onClick={() => setMenuOpen(true)}
+                className="grid size-10 place-items-center rounded-xl text-ivory-50 hover:bg-white/10"
+                aria-label="Open menu"
+                aria-expanded={menuOpen}
+                aria-controls="admin-mobile-menu"
               >
-                <X className="size-5" aria-hidden="true" />
+                <Menu className="size-5" aria-hidden="true" />
               </button>
-              <SidebarContent onNavigate={() => setMenuOpen(false)} />
             </div>
-          </div>
-        )}
+          </header>
 
-        <main className="flex-1 px-4 py-10 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-6xl">
-            <Outlet />
-          </div>
-        </main>
+          {menuOpen && (
+            <div
+              className="fixed inset-0 z-40 lg:hidden"
+              id="admin-mobile-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-ink-900/50"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="relative h-full w-72 max-w-[85vw] bg-forest-900 p-6">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="absolute right-4 top-4 grid size-9 place-items-center rounded-lg text-ivory-50 hover:bg-white/10"
+                  aria-label="Close menu"
+                >
+                  <X className="size-5" aria-hidden="true" />
+                </button>
+                <SidebarContent onNavigate={() => setMenuOpen(false)} />
+              </div>
+            </div>
+          )}
+
+          <main className="flex-1 px-4 py-10 sm:px-8 lg:px-12">
+            <div className="mx-auto max-w-6xl">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </NotificationsProvider>
   )
 }

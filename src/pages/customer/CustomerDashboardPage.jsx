@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CalendarPlus, UserRound, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
+import RecentNotificationsCard from '@/components/notifications/RecentNotificationsCard.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
 import Button from '@/components/ui/Button.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
@@ -95,6 +96,8 @@ export default function CustomerDashboardPage() {
         )}
 
         <EnquiryCard userId={profile.id} />
+
+        <RecentNotificationsCard allPath="/account/notifications" limit={3} className="lg:col-start-1" />
 
         <Card className="lg:col-start-1">
           <CardBody className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">

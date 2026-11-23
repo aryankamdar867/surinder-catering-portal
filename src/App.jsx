@@ -19,6 +19,7 @@ const MenuPage = lazy(() => import('@/pages/customer/MenuPage.jsx'))
 const EnquiriesPage = lazy(() => import('@/pages/customer/enquiry/EnquiriesPage.jsx'))
 const NewEnquiryPage = lazy(() => import('@/pages/customer/enquiry/NewEnquiryPage.jsx'))
 const EnquiryDetailPage = lazy(() => import('@/pages/customer/enquiry/EnquiryDetailPage.jsx'))
+const NotificationsPage = lazy(() => import('@/pages/shared/NotificationsPage.jsx'))
 const CustomerQuotationPage = lazy(() => import('@/pages/customer/quotation/CustomerQuotationPage.jsx'))
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage.jsx'))
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="enquiries/new" element={<NewEnquiryPage />} />
             <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
             <Route path="quotations/:id" element={<CustomerQuotationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
@@ -69,6 +71,7 @@ export default function App() {
               <Route path="enquiries" element={<AdminEnquiriesPage />} />
               <Route path="enquiries/:id" element={<AdminEnquiryDetailPage />} />
               <Route path="quotations/:id" element={<QuotationPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="dishes" element={<DishesPage />} />
               <Route path="dishes/new" element={<DishFormPage />} />
               <Route path="dishes/:id" element={<DishFormPage />} />

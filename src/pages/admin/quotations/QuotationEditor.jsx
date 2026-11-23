@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, PenLine, Plus, Save, Send, Trash2, X } from 'lucide
 import { toast } from 'sonner'
 import Alert from '@/components/feedback/Alert.jsx'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog.jsx'
+import DownloadPdfButton from '@/components/quotation/DownloadPdfButton.jsx'
 import { QuotationTotals } from '@/components/quotation/QuotationDocument.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card.jsx'
@@ -569,6 +570,14 @@ export default function QuotationEditor({ quotation, version, dishes, onSaved, o
                 <Save className="size-4" aria-hidden="true" />
                 Save draft
               </Button>
+              <DownloadPdfButton
+                quotationId={quotation.id}
+                versionId={version.id}
+                label={dirty ? 'Save to preview PDF' : 'Preview PDF'}
+                variant="ghost"
+                size="md"
+                disabled={dirty || Boolean(busy)}
+              />
               <Button variant="ghost" className="text-burgundy-600 hover:bg-burgundy-50" onClick={() => setConfirm('discard')} disabled={Boolean(busy)}>
                 <Trash2 className="size-4" aria-hidden="true" />
                 {quotation.status === 'draft' ? 'Delete quotation' : 'Discard revision'}

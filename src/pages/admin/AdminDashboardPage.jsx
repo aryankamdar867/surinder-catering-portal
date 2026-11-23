@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarCheck, ClipboardList, ShieldCheck, Tags, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext.js'
+import RecentNotificationsCard from '@/components/notifications/RecentNotificationsCard.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Card, { CardBody } from '@/components/ui/Card.jsx'
 import PageHeader from '@/components/ui/PageHeader.jsx'
@@ -96,6 +97,8 @@ export default function AdminDashboardPage() {
           cta="Manage catalogue"
         />
       </div>
+
+      <RecentNotificationsCard allPath="/admin/notifications" className="mt-6" />
 
       <Card className="mt-6">
         <CardBody className="flex items-center gap-4">
